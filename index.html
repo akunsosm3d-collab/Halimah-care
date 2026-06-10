@@ -272,30 +272,51 @@ async function cekNotifikasiOtomatis(){
   clearNotif();
   let dHariIni = await getDataHari(hariIni);
 
-  // 1. Kejang hari ini
-  if(dHariIni && dHariIni.kejang=='ya'){
-    tambahNotif('Hari ini Halimah kurang sehat ya um, karena ada kejang', '⚠️', 'notif-merah');
-  }
-
-  // 2. BAB hari ini
-  if(dHariIni){
-    if(dHariIni.bab=='Seret'){
-      tambahNotif('Sabar ya umi, klo Halimah agak rewel karena BAB ga lancar', '😟');
-    }
-    if(dHariIni.bab=='Belum BAB'){
-      tambahNotif('Halimah belum BAB ya um, coba kasih alpukat atau pepaya', '🥑');
-    }
-    // 3. Alhamdulillah sehat
-    if(dHariIni.kejang=='tidak' && dHariIni.bab=='Lancar'){
-      tambahNotif('Alhamdulillah Halimah sehat', '✅', 'notif-hijau');
-    }
-  }
-
-  // 4. Terakhir kejang berapa hari lalu
+  // Ambil data terakhir dari Firebase
   const { collection, getDocs, query, orderBy } = window.firebaseFuncs;
   const q = query(collection(window.db, "halimah"), orderBy("tanggal", "desc"));
   const snap = await getDocs(q);
 
+  let dataTerakhir = null;
+  snap.forEach(docSnap=>{
+    if(!dataTerakhir) dataTerakhir = docSnap.data(); // ambil yg paling atas = terbaru
+  });
+
+  if(!dataTerakhir) return; // kalau belum ada data sama sekali
+
+  // 1. LOGIKA KEJANG - pake data terakhir
+  if(dataTerakhir.kejang == 'ya'){
+    let kejangHariIni = dHariIni && dHariIni.kejang == 'ya';
+
+    if(kejangHariIni){
+      // Kalau kejang hari ini: ganti-gantian tiap buka APK
+      let opsi = [
+        'Halimah kejang kenapa mi?',
+        'Gimana mi? Halimah masih kejang?'
+      ];
+      let index = new Date().getMinutes() % 2; // menit genap/ganjil buat ganti notif
+      tambahNotif(opsi[index], '⚠️', 'notif-merah');
+    } else {
+      // Kejang terakhir bukan hari ini
+      tambahNotif('Gimana mi? Halimah masih kejang?', '⚠️', 'notif-merah');
+    }
+  }
+
+  // 2. LOGIKA BAB - pake data terakhir
+  if(dataTerakhir.bab == 'Seret'){
+    tambahNotif('Sabar ya umi, klo Halimah agak rewel karena BAB ga lancar', '😟');
+  }
+
+  if(dataTerakhir.bab == 'Belum BAB'){
+    tambahNotif('Halimah belum BAB ya um, coba kasih alpukat atau pepaya', '🥑');
+  }
+
+  // 3. SEHAT - data terakhir kejang=tidak DAN bab=lancar
+  if(dataTerakhir.kejang == 'tidak' && dataTerakhir.bab == 'Lancar'){
+    tambahNotif('Alhamdulillah Halimah sehat', '✅', 'notif-hijau');
+  }
+
+  // 4. Bonus: Terakhir kejang berapa hari lalu
   let terakhirKejang = null;
   snap.forEach(docSnap=>{
     let d = docSnap.data();
@@ -304,9 +325,9 @@ async function cekNotifikasiOtomatis(){
     }
   });
 
-  if(terakhirKejang && terakhirKejang!=hariIni){
+  if(terakhirKejang && terakhirKejang!= hariIni){
     let selisih = Math.floor((new Date(hariIni) - new Date(terakhirKejang)) / (1000*60*60*24));
-    if(selisih>0){
+    if(selisih > 0){
       tambahNotif('Terakhir kejang '+selisih+' hari yang lalu', '📅', 'notif-hijau');
     }
   }
