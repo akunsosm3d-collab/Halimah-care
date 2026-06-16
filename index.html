@@ -8,6 +8,7 @@
   body{font-family:Poppins,sans-serif;background:#f0f9ff;margin:0;padding:0;color:#334155;padding-bottom:100px}
 .container{max-width:520px;margin:auto;padding:15px}
   h1,h2{text-align:center;color:#0ea5e9;margin:10px 0;font-weight:700}
+h3{color:#0f172a;margin:10px 0}
 .card{background:white;border-radius:16px;padding:15px;margin-bottom:15px;box-shadow:0 4px 12px rgba(14,165,233,0.08);border-top:4px solid #0ea5e9}
 .greeting{font-size:26px;font-weight:700;color:#0284c7;text-align:center;margin:8px 0 5px 0;animation:putarMasuk 1.2s ease}
   @keyframes putarMasuk{0%{opacity:0;transform:rotate(-10deg) scale(0.8)}50%{transform:rotate(5deg) scale(1.05)}100%{opacity:1;transform:rotate(0) scale(1)}}
@@ -20,9 +21,9 @@
   @keyframes fadeSlide{0%{opacity:0;transform:translateX(-15px)}100%{opacity:1;transform:translateX(0)}}
 .step-title{font-size:18px;font-weight:600;color:#0f172a;margin-bottom:12px}
 .opt-btn{background:#f1f5f9;border:2px solid #cbd5e1;color:#334155;padding:12px;border-radius:12px;width:100%;margin-bottom:8px;font-size:15px;cursor:pointer}
-  label{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:14px}
-  input[type="number"],textarea,input[type="text"],input[type="date"]{width:100%;padding:8px;border-radius:8px;border:1px solid #cbd5e1;margin-top:5px;font-size:14px}
-  textarea{height:70px}
+  label{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:14px;font-weight:500}
+  input[type="number"],textarea,input[type="text"],input[type="date"],select{width:100%;padding:12px;border-radius:8px;border:1px solid #cbd5e1;margin-top:5px;font-size:14px;font-family:inherit;box-sizing:border-box}
+  textarea{height:70px;resize:vertical}
 .hidden{display:none!important}
 
 .popup{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:1000}
@@ -47,22 +48,60 @@
 .riwayat-block{margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed #e2e8f0}
 .riwayat-block:last-child{border-bottom:none;margin-bottom:0}
 .riwayat-label{font-weight:600;color:#475569;font-size:13px;margin-bottom:4px}
-.riwayat-value{color:#334155;font-size:14px;line-height:1.6}
+.riwayat-value{color:#334155;font-size:14px;line-height:1.6;white-space:pre-wrap}
 .riwayat-value.sub{margin-left:12px;color:#64748b}
 
 .kapan-makan{margin-left:20px;margin-top:8px;padding-left:12px;border-left:2px solid #e2e8f0}
 .sub-input{margin-top:6px;margin-left:20px}
 
-
   /* NOTIF NEMPEL DI DASHBOARD KAYAK GREETING */
 .notif-card{background:#fef3c7;border-left:4px solid #f59e0b;border-radius:12px;padding:12px 15px;margin-top:15px;margin-bottom:12px;display:flex;align-items:center;gap:10px;animation:slideDown 0.4s}
   @keyframes slideDown{0%{opacity:0;transform:translateY(-20px)}100%{opacity:1;transform:translateY(0)}}
- .notif-icon{font-size:22px;flex-shrink:0}
- .notif-text{font-size:14px;color:#92400e;font-weight:500;line-height:1.4}
- .notif-merah{background:#fee2e2;border-left-color:#dc2626}
- .notif-merah.notif-text{color:#991b1b}
- .notif-hijau{background:#dcfce7;border-left-color:#16a34a}
- .notif-hijau.notif-text{color:#166534}
+.notif-icon{font-size:22px;flex-shrink:0}
+.notif-text{font-size:14px;color:#92400e;font-weight:500;line-height:1.4}
+.notif-merah{background:#fee2e2;border-left-color:#dc2626}
+.notif-merah.notif-text{color:#991b1b}
+.notif-hijau{background:#dcfce7;border-left-color:#16a34a}
+.notif-hijau.notif-text{color:#166534}
+
+/* BADGE STATUS AGENDA */
+.badge{padding:3px 8px;border-radius:12px;font-size:12px;font-weight:600}
+.badge.belum{background:#fef3c7;color:#92400e}
+.badge.selesai{background:#dcfce7;color:#166534}
+.badge.reschedule{background:#dbeafe;color:#1e40af}
+.badge.batal{background:#fee2e2;color:#991b1b}
+.modal-overlay {
+  position: fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+.modal-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 400px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+.modal-box h3 { margin-top:0; color:#0ea5e9 }
+.modal-close {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-top: 15px;
+  width: 100%;
+  cursor: pointer;
+}
+.riwayat-item { cursor: pointer; } /* biar ada tanda tangan */
 </style>
 
 <script type="module">
@@ -98,12 +137,14 @@
       <button class="btn" onclick="cekDanMulai()">+ Catat</button>
       <button class="btn alt" onclick="bukaRiwayat()">📋 Riwayat</button>
     </div>
+    <div class="btn-wrap" style="margin-top:8px">
+      <button class="btn" style="background:#f59e0b" onclick="bukaAgenda()">📅 Agenda</button>
+    </div>
 
-    <!-- NOTIF PINDAH KE SINI -->
     <div id="notifArea"></div>
   </div>
 
-  <!-- STEP FORM SAMA KAYAK SEBELUMNYA -->
+  <!-- STEP FORM CATATAN HARIAN - sama kayak sebelumnya -->
   <div id="s0" class="hidden">
     <div class="card step">
       <div class="step-title">Pilih tanggal catatan</div>
@@ -227,6 +268,51 @@
     <div id="listRiwayat">Loading...</div>
     <button class="btn gray" onclick="batal()">Kembali</button>
   </div>
+
+  <!-- HALAMAN AGENDA BARU -->
+  <div id="agendaPage" class="hidden">
+    <h2>📅 Agenda Halimah</h2>
+    <div class="card step">
+      <div class="step-title">Buat/Edit Agenda</div>
+      <label>Tanggal bikin:</label>
+      <input type="date" id="agendaTanggalBikin">
+      <label>Isi Agenda:</label>
+      <textarea id="agendaIsi" placeholder="Tulis rencana/agenda di sini..." style="height:120px"></textarea>
+      <label>Tanggal rencana pelaksanaan: <span style="font-size:12px;color:#64748b;font-weight:400">(opsional)</span></label>
+      <input type="date" id="agendaTanggalLaksana">
+      <label>Status:</label>
+<select id="agendaStatus">
+  <option value="belum">Belum</option>
+  <option value="selesai">Selesai</option>
+  <option value="reschedule">Reschedule</option>
+  <option value="batal">Batal</option>
+</select>
+
+<label>Hasil/Resep Dokter:</label>
+<textarea id="agendaHasil" rows="3" placeholder="Tulis hasil periksa/resep di sini... (opsional)"></textarea>
+      <button class="btn" style="background:#f59e0b;margin-top:10px" onclick="simpanAgenda()">Simpan Agenda</button>
+    </div>
+    
+    <!-- Modal Detail Agenda -->
+<div id="modalDetail" class="modal-overlay" onclick="tutupModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h3>📋 Detail Agenda</h3>
+    <div id="isiModal"></div>
+    <button class="modal-close" onclick="tutupModal()">Tutup</button>
+  </div>
+</div>
+
+    <h3>Daftar Agenda</h3>
+    <div class="filter-wrap">
+      <button class="filter-btn active" onclick="filterAgenda('semua',this)">Semua</button>
+      <button class="filter-btn" onclick="filterAgenda('belum',this)">Belum</button>
+      <button class="filter-btn" onclick="filterAgenda('selesai',this)">Selesai</button>
+      <button class="filter-btn" onclick="filterAgenda('reschedule',this)">Reschedule</button>
+      <button class="filter-btn" onclick="filterAgenda('batal',this)">Batal</button>
+    </div>
+    <div id="listAgenda">Loading...</div>
+    <button class="btn gray" onclick="batalAgenda()">Kembali</button>
+  </div>
 </div>
 
 <audio id="notifSound" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/24/audio_d1718fbef7.mp3?filename=notification-sound-7062.mp3"></audio>
@@ -236,6 +322,8 @@ let data = {};
 let hariIni = new Date().toISOString().split('T')[0];
 let editTanggal = null;
 let modeEdit = false;
+let editAgendaId = null;
+let filterAgendaAktif = 'semua';
 
 async function getDataHari(tgl){
   const { doc, getDoc } = window.firebaseFuncs;
@@ -249,88 +337,57 @@ async function initApp(){
   cekNotifikasiOtomatis();
 }
 
-// FUNGSI NOTIF NEMPEL
 function tambahNotif(pesan, icon='💡', tipe=''){
   let area = document.getElementById('notifArea');
-  // Cek biar ga dobel
   if(area.innerHTML.includes(pesan)) return;
-
   let div = document.createElement('div');
   div.className = 'notif-card '+tipe;
   div.innerHTML = `<div class="notif-icon">${icon}</div><div class="notif-text">${pesan}</div>`;
   area.appendChild(div);
-
   let sound = document.getElementById('notifSound');
   sound.currentTime = 0;
   sound.play().catch(e=>console.log('Sound gagal:',e));
 }
 
-function clearNotif(){
-  document.getElementById('notifArea').innerHTML = '';
-}
+function clearNotif(){ document.getElementById('notifArea').innerHTML = ''; }
 
 async function cekNotifikasiOtomatis(){
   clearNotif();
   let dHariIni = await getDataHari(hariIni);
-
-  // Ambil data terakhir dari Firebase
   const { collection, getDocs, query, orderBy } = window.firebaseFuncs;
   const q = query(collection(window.db, "halimah"), orderBy("tanggal", "desc"));
   const snap = await getDocs(q);
-
   let dataTerakhir = null;
-  snap.forEach(docSnap=>{
-    if(!dataTerakhir) dataTerakhir = docSnap.data(); // ambil yg paling atas = terbaru
-  });
+  snap.forEach(docSnap=>{ if(!dataTerakhir) dataTerakhir = docSnap.data(); });
+  if(!dataTerakhir) return;
 
-  if(!dataTerakhir) return; // kalau belum ada data sama sekali
-
-  // 1. LOGIKA KEJANG - pake data terakhir
   if(dataTerakhir.kejang == 'ya'){
     let kejangHariIni = dHariIni && dHariIni.kejang == 'ya';
-
     if(kejangHariIni){
-      // Kalau kejang hari ini: ganti-gantian tiap buka APK
-      let opsi = [
-        'Halimah kejang kenapa mi?',
-        'Gimana mi? Halimah masih kejang?'
-      ];
-      let index = new Date().getMinutes() % 2; // menit genap/ganjil buat ganti notif
+      let opsi = ['Halimah kejang kenapa mi?','Gimana mi? Halimah masih kejang?'];
+      let index = new Date().getMinutes() % 2;
       tambahNotif(opsi[index], '⚠️', 'notif-merah');
     } else {
-      // Kejang terakhir bukan hari ini
       tambahNotif('Gimana mi? Halimah masih kejang?', '⚠️', 'notif-merah');
     }
   }
-
-  // 2. LOGIKA BAB - pake data terakhir
   if(dataTerakhir.bab == 'Seret'){
     tambahNotif('Sabar ya umi, klo Halimah agak rewel karena BAB ga lancar', '😟');
   }
-
   if(dataTerakhir.bab == 'Belum BAB'){
     tambahNotif('Halimah belum BAB ya um, coba kasih alpukat atau pepaya', '🥑');
   }
-
-  // 3. SEHAT - data terakhir kejang=tidak DAN bab=lancar
   if(dataTerakhir.kejang == 'tidak' && dataTerakhir.bab == 'Lancar'){
     tambahNotif('Alhamdulillah Halimah sehat', '✅', 'notif-hijau');
   }
-
-  // 4. Bonus: Terakhir kejang berapa hari lalu
   let terakhirKejang = null;
   snap.forEach(docSnap=>{
     let d = docSnap.data();
-    if(d.kejang=='ya' &&!terakhirKejang){
-      terakhirKejang = d.tanggal;
-    }
+    if(d.kejang=='ya' &&!terakhirKejang){ terakhirKejang = d.tanggal; }
   });
-
   if(terakhirKejang && terakhirKejang!= hariIni){
     let selisih = Math.floor((new Date(hariIni) - new Date(terakhirKejang)) / (1000*60*60*24));
-    if(selisih > 0){
-      tambahNotif('Terakhir kejang '+selisih+' hari yang lalu', '📅', 'notif-hijau');
-    }
+    if(selisih > 0){ tambahNotif('Terakhir kejang '+selisih+' hari yang lalu', '📅', 'notif-hijau'); }
   }
 }
 
@@ -352,7 +409,6 @@ async function cekDanMulai(){
   data = {};
   resetForm();
   document.getElementById('inputTanggal').value = hariIni;
-
   let d = await getDataHari(hariIni);
   if(d){
     document.getElementById('popupRalat').classList.add('show');
@@ -383,7 +439,7 @@ function lanjutStep1(){
 function tutupPopup(){ document.getElementById('popupRalat').classList.remove('show'); }
 
 function batal(){
-  ['s0','s1','s2','s3','s4','s5','s6','s7','s8','riwayatPage'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  ['s0','s1','s2','s3','s4','s5','s6','s7','s8','riwayatPage','agendaPage'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   document.getElementById('dashboard').classList.remove('hidden');
   tutupPopup();
   updateStatusDashboard();
@@ -448,10 +504,8 @@ function loadDataKeForm(){
     document.getElementById('jmlKejang').value = data.jmlKejang||'';
   }
   if(data.tidur){
-    let adaLain = false;
     data.tidur.forEach(v=>{
       if(v.startsWith('Lainnya:')){
-        adaLain = true;
         document.getElementById('tidurLainChk').checked=true;
         document.getElementById('tidurLain').classList.remove('hidden');
         document.getElementById('tidurLain').value = v.replace('Lainnya: ','');
@@ -460,7 +514,6 @@ function loadDataKeForm(){
       }
     });
   }
-
   if(data.makan){
     let adaNasi = false, adaBubur = false;
     data.makan.forEach(v=>{
@@ -481,7 +534,6 @@ function loadDataKeForm(){
     if(adaNasi){ document.querySelector('input[value="Nasi"]').checked=true; toggleKapanMakan('Nasi',true); }
     if(adaBubur){ document.querySelector('input[value="Bubur"]').checked=true; toggleKapanMakan('Bubur',true); }
   }
-
   if(data.minum){
     data.minum.forEach(v=>{
       if(v.startsWith('Lainnya:')){
@@ -493,7 +545,6 @@ function loadDataKeForm(){
       }
     });
   }
-
   if(data.jmlBab) document.getElementById('jmlBab').value = data.jmlBab;
   if(data.ket) document.getElementById('ket').value = data.ket;
 }
@@ -503,17 +554,14 @@ async function selesai(){
   let tglLama = editTanggal;
   let d = new Date(tglBaru);
   let formatTanggal = d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear().toString().slice(-2);
-
   data.tanggal = tglBaru;
   data.formatTanggal = formatTanggal;
   data.waktuInput = new Date().toISOString();
-
   const { doc, setDoc, deleteDoc } = window.firebaseFuncs;
   if(tglLama && tglBaru!=tglLama){
     await deleteDoc(doc(window.db, "halimah", tglLama));
   }
   await setDoc(doc(window.db, "halimah", tglBaru), data);
-
   editTanggal = null;
   modeEdit = false;
   batal();
@@ -523,6 +571,7 @@ function bukaRiwayat(){
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById('riwayatPage').classList.remove('hidden');
   filterRiwayat('semua', document.querySelector('.filter-btn.active'));
+  setHistoryState('riwayat');
 }
 
 async function editRiwayat(tgl){
@@ -550,25 +599,21 @@ function formatMakan(arr){
   let nasi = arr.filter(x=>x.startsWith('Nasi-')).map(x=>x.split('-')[1]);
   let bubur = arr.filter(x=>x.startsWith('Bubur-')).map(x=>x.split('-')[1]);
   let lain = arr.filter(x=>!x.startsWith('Nasi-') &&!x.startsWith('Bubur-') && x!='Nasi' && x!='Bubur');
-
   let html = '';
-  if(nasi.length) html += `Nasi: <span class="sub">• ${nasi.join(' • ')}</span><br>`;
-  if(bubur.length) html += `Bubur: <span class="sub">• ${bubur.join(' • ')}</span><br>`;
-  if(lain.length) html += lain.join('<br>');
+  if(nasi.length) html += `Nasi: • ${nasi.join(' • ')}\n`;
+  if(bubur.length) html += `Bubur: • ${bubur.join(' • ')}\n`;
+  if(lain.length) html += lain.join('\n');
   return html;
 }
 
 async function filterRiwayat(topik, btn){
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#riwayatPage .filter-wrap .filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-
   let html = '';
   document.getElementById('listRiwayat').innerHTML = 'Loading...';
-
   const { collection, getDocs, query, orderBy } = window.firebaseFuncs;
   const q = query(collection(window.db, "halimah"), orderBy("tanggal", "desc"));
   const snap = await getDocs(q);
-
   if(snap.empty){
     html = '<div class="card">Belum ada riwayat</div>';
   } else {
@@ -598,20 +643,178 @@ async function filterRiwayat(topik, btn){
       }
 
       if(blocks){
-        html += `<div class="riwayat-item">
-          <div class="riwayat-header">
-            <div class="riwayat-tgl">${d.formatTanggal}</div>
-            <div class="riwayat-aksi">
-              <button class="icon-btn" onclick="editRiwayat('${d.tanggal}')">✏️</button>
-              <button class="icon-btn hapus" onclick="hapusRiwayat('${d.tanggal}')">🗑️</button>
-            </div>
-          </div>
-          ${blocks}
-        </div>`;
+        html += `<div class="riwayat-item" style="border-left-color:${warna}">
+  <div class="riwayat-header">
+    <div class="riwayat-tgl">${formatLaksana} ${telat?'⚠️':''}</div>
+    <div class="riwayat-aksi">
+      <span class="badge ${d.status}">${badgeText}</span>
+      <button class="icon-btn" onclick="editAgenda('${d.id}')">✏️</button>
+      <button class="icon-btn hapus" onclick="hapusAgenda('${d.id}')">🗑️</button>
+    </div>
+  </div>
+  <div class="riwayat-block">
+    <div class="riwayat-label">Dibuat: ${formatBikin}</div>
+    <div class="riwayat-value">${d.isi}</div>
+  </div>
+  ${d.hasil ? `<div class="riwayat-block"><div class="riwayat-label">Hasil/Resep</div><div class="riwayat-value">${d.hasil}</div></div>` : ''}
+</div>`;
       }
     });
   }
   document.getElementById('listRiwayat').innerHTML = html;
+}
+
+// ===== FUNGSI AGENDA UPDATE =====
+function bukaAgenda(){
+  document.getElementById('dashboard').classList.add('hidden');
+  document.getElementById('agendaPage').classList.remove('hidden');
+  document.getElementById('agendaTanggalBikin').value = hariIni;
+  document.getElementById('agendaIsi').value = '';
+  document.getElementById('agendaTanggalLaksana').value = '';
+  document.getElementById('agendaStatus').value = 'belum';
+  editAgendaId = null;
+
+  // Reset filter ke "Semua" dan langsung aktif
+  filterAgendaAktif = 'semua';
+  let btnSemua = document.querySelector('#agendaPage .filter-wrap .filter-btn');
+  document.querySelectorAll('#agendaPage .filter-wrap .filter-btn').forEach(b=>b.classList.remove('active'));
+  btnSemua.classList.add('active');
+
+  loadAgenda(); // langsung load setelah tombol active diset
+  setHistoryState('agenda');
+}
+
+function batalAgenda(){
+  document.getElementById('agendaPage').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  updateStatusDashboard();
+  cekNotifikasiOtomatis();
+  setHistoryState('dashboard');
+}
+
+async function simpanAgenda(){
+  let tglBikin = document.getElementById('agendaTanggalBikin').value;
+  let isi = document.getElementById('agendaIsi').value.trim();
+  let tglLaksana = document.getElementById('agendaTanggalLaksana').value;
+  let status = document.getElementById('agendaStatus').value;
+  let hasil = document.getElementById('agendaHasil').value.trim(); // tambah ini
+
+  if(!tglBikin ||!isi){
+    alert('Tanggal bikin & isi agenda wajib diisi Umi');
+    return;
+  }
+
+  const { doc, setDoc } = window.firebaseFuncs;
+  let id = editAgendaId || 'agenda_'+Date.now();
+
+  await setDoc(doc(window.db, "agenda", id), {
+    id: id,
+    tanggalBikin: tglBikin,
+    isi: isi,
+    tanggalLaksana: tglLaksana || '',
+    status: status,
+    hasil: hasil || '', // tambah ini, boleh kosong
+    waktuInput: new Date().toISOString()
+  });
+
+  alert('Agenda tersimpan ✅');
+  editAgendaId = null;
+  document.getElementById('agendaIsi').value = '';
+  document.getElementById('agendaTanggalLaksana').value = '';
+  document.getElementById('agendaStatus').value = 'belum';
+  document.getElementById('agendaHasil').value = ''; // reset juga
+  loadAgenda();
+}
+
+async function loadAgenda(){
+  const { collection, getDocs, query, orderBy } = window.firebaseFuncs;
+  let list = document.getElementById('listAgenda');
+  list.innerHTML = 'Loading...';
+
+  let q = query(collection(window.db, "agenda"), orderBy("waktuInput", "desc"));
+  let snap = await getDocs(q);
+
+  if(snap.empty){
+    list.innerHTML = '<div class="card">Belum ada agenda</div>';
+    return;
+  }
+
+  let html = '';
+  snap.forEach(docSnap=>{
+    let d = docSnap.data();
+
+    // Filter status
+    if(filterAgendaAktif!= 'semua' && d.status!= filterAgendaAktif) return;
+
+    let dBikin = new Date(d.tanggalBikin);
+    let formatBikin = dBikin.getDate()+'/'+(dBikin.getMonth()+1)+'/'+dBikin.getFullYear().toString().slice(-2);
+
+    let formatLaksana = '-';
+    let telat = false;
+    if(d.tanggalLaksana){
+      let dLaksana = new Date(d.tanggalLaksana);
+      formatLaksana = dLaksana.getDate()+'/'+(dLaksana.getMonth()+1)+'/'+dLaksana.getFullYear().toString().slice(-2);
+      telat = dLaksana < new Date(hariIni) && d.status == 'belum';
+    }
+
+    let warna = '#f59e0b';
+    if(d.status == 'selesai') warna = '#16a34a';
+    else if(d.status == 'reschedule') warna = '#2563eb';
+    else if(d.status == 'batal') warna = '#dc2626';
+    else if(telat) warna = '#dc2626';
+
+    let badgeText = d.status.charAt(0).toUpperCase() + d.status.slice(1);
+
+    html += `<div class="riwayat-item" style="border-left-color:${warna}" onclick="lihatDetailAgenda('${d.id}')">
+  <div class="riwayat-header">
+    <div class="riwayat-tgl">${formatLaksana} ${telat?'⚠️':''}</div>
+    <div class="riwayat-aksi" onclick="event.stopPropagation()">
+      <span class="badge ${d.status}">${badgeText}</span>
+      <button class="icon-btn" onclick="editAgenda('${d.id}');event.stopPropagation()">✏️</button>
+      <button class="icon-btn hapus" onclick="hapusAgenda('${d.id}');event.stopPropagation()">🗑️</button>
+    </div>
+  </div>
+  <div class="riwayat-block">
+    <div class="riwayat-label">Dibuat: ${formatBikin}</div>
+    <div class="riwayat-value">${d.isi}</div>
+  </div>
+  ${d.hasil ? `<div class="riwayat-block"><div class="riwayat-label">Hasil/Resep</div><div class="riwayat-value">${d.hasil}</div></div>` : ''}
+</div>`;
+  });
+
+  if(html == '') html = '<div class="card">Belum ada agenda dengan status ini</div>';
+  list.innerHTML = html;
+}
+
+function filterAgenda(status, btn){
+  // Cuma hapus active di tombol filter Agenda, jangan semua filter-btn
+  document.querySelectorAll('#agendaPage .filter-wrap .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterAgendaAktif = status;
+  loadAgenda();
+}
+
+async function editAgenda(id){
+  const { doc, getDoc } = window.firebaseFuncs;
+  let snap = await getDoc(doc(window.db, "agenda", id));
+  if(snap.exists()){
+    let d = snap.data();
+    editAgendaId = id;
+    document.getElementById('agendaTanggalBikin').value = d.tanggalBikin;
+    document.getElementById('agendaIsi').value = d.isi;
+    document.getElementById('agendaTanggalLaksana').value = d.tanggalLaksana || '';
+    document.getElementById('agendaStatus').value = d.status || 'belum';
+    document.getElementById('agendaHasil').value = d.hasil || ''; // tambah ini
+    window.scrollTo(0,0);
+  }
+}
+
+async function hapusAgenda(id){
+  if(confirm('Hapus agenda ini?')){
+    const { doc, deleteDoc } = window.firebaseFuncs;
+    await deleteDoc(doc(window.db, "agenda", id));
+    loadAgenda();
+  }
 }
 
 // HANDLE TOMBOL BACK HP ANDROID
@@ -621,6 +824,7 @@ function setHistoryState(halaman){
 
 function cekHalamanAktif(){
   if(!document.getElementById('dashboard').classList.contains('hidden')) return 'dashboard';
+  if(!document.getElementById('agendaPage').classList.contains('hidden')) return 'agenda';
   if(!document.getElementById('riwayatPage').classList.contains('hidden')) return 'riwayat';
   if(!document.getElementById('s0').classList.contains('hidden')) return 's0';
   if(!document.getElementById('s1').classList.contains('hidden')) return 's1';
@@ -659,17 +863,40 @@ batal = function(){
 // Event pas tombol back HP dipencet
 window.addEventListener('popstate', function(e){
   let halaman = cekHalamanAktif();
-  
-  if(halaman != 'dashboard'){
-    // Klo bukan dashboard, balikin ke dashboard
+
+  if(halaman!= 'dashboard'){
     batal();
     history.pushState({page: 'dashboard'}, '', location.href);
   } else {
-    // Klo udah di dashboard, biarin Android keluar app
     history.back();
   }
 });
 
+async function lihatDetailAgenda(id){
+  const { doc, getDoc } = window.firebaseFuncs;
+  let snap = await getDoc(doc(window.db, "agenda", id));
+  if(snap.exists()){
+    let d = snap.data();
+    let formatBikin = new Date(d.tanggalBikin).toLocaleDateString('id-ID');
+    let formatLaksana = d.tanggalLaksana ? new Date(d.tanggalLaksana).toLocaleDateString('id-ID') : 'Belum ditentukan';
+    
+    let isiHtml = `
+      <p><b>Status:</b> <span class="badge ${d.status}">${d.status.toUpperCase()}</span></p>
+      <p><b>Dibuat:</b> ${formatBikin}</p>
+      <p><b>Rencana Laksana:</b> ${formatLaksana}</p>
+      <hr style="margin:12px 0;border:none;border-top:1px solid #e2e8f0">
+      <p><b>Isi Agenda:</b><br>${d.isi}</p>
+      ${d.hasil ? `<p><b>Hasil/Resep Dokter:</b><br>${d.hasil}</p>` : '<p style="color:#94a3b8"><i>Belum ada hasil/resep</i></p>'}
+    `;
+    
+    document.getElementById('isiModal').innerHTML = isiHtml;
+    document.getElementById('modalDetail').style.display = 'flex';
+  }
+}
+
+function tutupModal(){
+  document.getElementById('modalDetail').style.display = 'none';
+}
 </script>
 </body>
-</html>
+  </html>
