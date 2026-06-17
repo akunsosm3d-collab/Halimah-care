@@ -70,38 +70,6 @@ h3{color:#0f172a;margin:10px 0}
 .badge.selesai{background:#dcfce7;color:#166534}
 .badge.reschedule{background:#dbeafe;color:#1e40af}
 .badge.batal{background:#fee2e2;color:#991b1b}
-.modal-overlay {
-  position: fixed;
-  top:0; left:0; right:0; bottom:0;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 20px;
-}
-.modal-box {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  max-width: 400px;
-  width: 100%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-}
-.modal-box h3 { margin-top:0; color:#0ea5e9 }
-.modal-close {
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 14px;
-  margin-top: 15px;
-  width: 100%;
-  cursor: pointer;
-}
-.riwayat-item { cursor: pointer; } /* biar ada tanda tangan */
 </style>
 
 <script type="module">
@@ -272,7 +240,12 @@ h3{color:#0f172a;margin:10px 0}
   <!-- HALAMAN AGENDA BARU -->
   <div id="agendaPage" class="hidden">
     <h2>📅 Agenda Halimah</h2>
-    <div class="card step">
+
+    <!-- TOMBOL TAMBAH AGENDA -->
+    <button class="btn" style="background:#0ea5e9;margin-bottom:15px" onclick="toggleFormAgenda()">+ Tambah Agenda</button>
+
+    <!-- FORM AGENDA DISEMBUNYIIN DULU -->
+    <div id="formAgenda" class="card step hidden">
       <div class="step-title">Buat/Edit Agenda</div>
       <label>Tanggal bikin:</label>
       <input type="date" id="agendaTanggalBikin">
@@ -281,26 +254,15 @@ h3{color:#0f172a;margin:10px 0}
       <label>Tanggal rencana pelaksanaan: <span style="font-size:12px;color:#64748b;font-weight:400">(opsional)</span></label>
       <input type="date" id="agendaTanggalLaksana">
       <label>Status:</label>
-<select id="agendaStatus">
-  <option value="belum">Belum</option>
-  <option value="selesai">Selesai</option>
-  <option value="reschedule">Reschedule</option>
-  <option value="batal">Batal</option>
-</select>
-
-<label>Hasil/Resep Dokter:</label>
-<textarea id="agendaHasil" rows="3" placeholder="Tulis hasil periksa/resep di sini... (opsional)"></textarea>
+      <select id="agendaStatus">
+        <option value="belum">Belum</option>
+        <option value="selesai">Selesai</option>
+        <option value="reschedule">Reschedule</option>
+        <option value="batal">Batal</option>
+      </select>
       <button class="btn" style="background:#f59e0b;margin-top:10px" onclick="simpanAgenda()">Simpan Agenda</button>
+      <button class="btn gray" style="margin-top:8px" onclick="toggleFormAgenda()">Batal</button>
     </div>
-    
-    <!-- Modal Detail Agenda -->
-<div id="modalDetail" class="modal-overlay" onclick="tutupModal()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <h3>📋 Detail Agenda</h3>
-    <div id="isiModal"></div>
-    <button class="modal-close" onclick="tutupModal()">Tutup</button>
-  </div>
-</div>
 
     <h3>Daftar Agenda</h3>
     <div class="filter-wrap">
@@ -570,7 +532,13 @@ async function selesai(){
 function bukaRiwayat(){
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById('riwayatPage').classList.remove('hidden');
-  filterRiwayat('semua', document.querySelector('.filter-btn.active'));
+  
+  // Reset filter ke "Semua" dan langsung aktif
+  let btnSemua = document.querySelector('#riwayatPage .filter-wrap .filter-btn');
+  document.querySelectorAll('#riwayatPage .filter-wrap .filter-btn').forEach(b=>b.classList.remove('active'));
+  btnSemua.classList.add('active');
+  
+  filterRiwayat('semua', btnSemua);
   setHistoryState('riwayat');
 }
 
@@ -589,7 +557,7 @@ async function hapusRiwayat(tgl){
   if(confirm('Yakin mau hapus data tanggal '+d.formatTanggal+'?')){
     const { doc, deleteDoc } = window.firebaseFuncs;
     await deleteDoc(doc(window.db, "halimah", tgl));
-    filterRiwayat('semua', document.querySelector('.filter-btn.active'));
+    filterRiwayat('semua', document.querySelector('#riwayatPage.filter-btn.active'));
     updateStatusDashboard();
   }
 }
@@ -614,6 +582,7 @@ async function filterRiwayat(topik, btn){
   const { collection, getDocs, query, orderBy } = window.firebaseFuncs;
   const q = query(collection(window.db, "halimah"), orderBy("tanggal", "desc"));
   const snap = await getDocs(q);
+  
   if(snap.empty){
     html = '<div class="card">Belum ada riwayat</div>';
   } else {
@@ -643,21 +612,16 @@ async function filterRiwayat(topik, btn){
       }
 
       if(blocks){
-        html += `<div class="riwayat-item" style="border-left-color:${warna}">
-  <div class="riwayat-header">
-    <div class="riwayat-tgl">${formatLaksana} ${telat?'⚠️':''}</div>
-    <div class="riwayat-aksi">
-      <span class="badge ${d.status}">${badgeText}</span>
-      <button class="icon-btn" onclick="editAgenda('${d.id}')">✏️</button>
-      <button class="icon-btn hapus" onclick="hapusAgenda('${d.id}')">🗑️</button>
-    </div>
-  </div>
-  <div class="riwayat-block">
-    <div class="riwayat-label">Dibuat: ${formatBikin}</div>
-    <div class="riwayat-value">${d.isi}</div>
-  </div>
-  ${d.hasil ? `<div class="riwayat-block"><div class="riwayat-label">Hasil/Resep</div><div class="riwayat-value">${d.hasil}</div></div>` : ''}
-</div>`;
+        html += `<div class="riwayat-item">
+          <div class="riwayat-header">
+            <div class="riwayat-tgl">${d.formatTanggal}</div>
+            <div class="riwayat-aksi">
+              <button class="icon-btn" onclick="editRiwayat('${d.tanggal}')">✏️</button>
+              <button class="icon-btn hapus" onclick="hapusRiwayat('${d.tanggal}')">🗑️</button>
+            </div>
+          </div>
+          ${blocks}
+        </div>`;
       }
     });
   }
@@ -668,6 +632,7 @@ async function filterRiwayat(topik, btn){
 function bukaAgenda(){
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById('agendaPage').classList.remove('hidden');
+  document.getElementById('formAgenda').classList.add('hidden'); // form disembunyiin dulu
   document.getElementById('agendaTanggalBikin').value = hariIni;
   document.getElementById('agendaIsi').value = '';
   document.getElementById('agendaTanggalLaksana').value = '';
@@ -680,8 +645,20 @@ function bukaAgenda(){
   document.querySelectorAll('#agendaPage .filter-wrap .filter-btn').forEach(b=>b.classList.remove('active'));
   btnSemua.classList.add('active');
 
-  loadAgenda(); // langsung load setelah tombol active diset
+  loadAgenda();
   setHistoryState('agenda');
+}
+
+function toggleFormAgenda(){
+  document.getElementById('formAgenda').classList.toggle('hidden');
+  if(!document.getElementById('formAgenda').classList.contains('hidden')){
+    document.getElementById('agendaTanggalBikin').value = hariIni;
+  } else {
+    editAgendaId = null;
+    document.getElementById('agendaIsi').value = '';
+    document.getElementById('agendaTanggalLaksana').value = '';
+    document.getElementById('agendaStatus').value = 'belum';
+  }
 }
 
 function batalAgenda(){
@@ -697,7 +674,6 @@ async function simpanAgenda(){
   let isi = document.getElementById('agendaIsi').value.trim();
   let tglLaksana = document.getElementById('agendaTanggalLaksana').value;
   let status = document.getElementById('agendaStatus').value;
-  let hasil = document.getElementById('agendaHasil').value.trim(); // tambah ini
 
   if(!tglBikin ||!isi){
     alert('Tanggal bikin & isi agenda wajib diisi Umi');
@@ -713,16 +689,12 @@ async function simpanAgenda(){
     isi: isi,
     tanggalLaksana: tglLaksana || '',
     status: status,
-    hasil: hasil || '', // tambah ini, boleh kosong
     waktuInput: new Date().toISOString()
   });
 
   alert('Agenda tersimpan ✅');
   editAgendaId = null;
-  document.getElementById('agendaIsi').value = '';
-  document.getElementById('agendaTanggalLaksana').value = '';
-  document.getElementById('agendaStatus').value = 'belum';
-  document.getElementById('agendaHasil').value = ''; // reset juga
+  toggleFormAgenda();
   loadAgenda();
 }
 
@@ -743,7 +715,6 @@ async function loadAgenda(){
   snap.forEach(docSnap=>{
     let d = docSnap.data();
 
-    // Filter status
     if(filterAgendaAktif!= 'semua' && d.status!= filterAgendaAktif) return;
 
     let dBikin = new Date(d.tanggalBikin);
@@ -765,21 +736,20 @@ async function loadAgenda(){
 
     let badgeText = d.status.charAt(0).toUpperCase() + d.status.slice(1);
 
-    html += `<div class="riwayat-item" style="border-left-color:${warna}" onclick="lihatDetailAgenda('${d.id}')">
-  <div class="riwayat-header">
-    <div class="riwayat-tgl">${formatLaksana} ${telat?'⚠️':''}</div>
-    <div class="riwayat-aksi" onclick="event.stopPropagation()">
-      <span class="badge ${d.status}">${badgeText}</span>
-      <button class="icon-btn" onclick="editAgenda('${d.id}');event.stopPropagation()">✏️</button>
-      <button class="icon-btn hapus" onclick="hapusAgenda('${d.id}');event.stopPropagation()">🗑️</button>
-    </div>
-  </div>
-  <div class="riwayat-block">
-    <div class="riwayat-label">Dibuat: ${formatBikin}</div>
-    <div class="riwayat-value">${d.isi}</div>
-  </div>
-  ${d.hasil ? `<div class="riwayat-block"><div class="riwayat-label">Hasil/Resep</div><div class="riwayat-value">${d.hasil}</div></div>` : ''}
-</div>`;
+    html += `<div class="riwayat-item" style="border-left-color:${warna}">
+      <div class="riwayat-header">
+        <div class="riwayat-tgl">${formatLaksana} ${telat?'⚠️':''}</div>
+        <div class="riwayat-aksi">
+          <span class="badge ${d.status}">${badgeText}</span>
+          <button class="icon-btn" onclick="editAgenda('${d.id}')">✏️</button>
+          <button class="icon-btn hapus" onclick="hapusAgenda('${d.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="riwayat-block">
+        <div class="riwayat-label">Dibuat: ${formatBikin}</div>
+        <div class="riwayat-value">${d.isi}</div>
+      </div>
+    </div>`;
   });
 
   if(html == '') html = '<div class="card">Belum ada agenda dengan status ini</div>';
@@ -787,7 +757,6 @@ async function loadAgenda(){
 }
 
 function filterAgenda(status, btn){
-  // Cuma hapus active di tombol filter Agenda, jangan semua filter-btn
   document.querySelectorAll('#agendaPage .filter-wrap .filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   filterAgendaAktif = status;
@@ -804,7 +773,7 @@ async function editAgenda(id){
     document.getElementById('agendaIsi').value = d.isi;
     document.getElementById('agendaTanggalLaksana').value = d.tanggalLaksana || '';
     document.getElementById('agendaStatus').value = d.status || 'belum';
-    document.getElementById('agendaHasil').value = d.hasil || ''; // tambah ini
+    document.getElementById('formAgenda').classList.remove('hidden');
     window.scrollTo(0,0);
   }
 }
@@ -838,10 +807,8 @@ function cekHalamanAktif(){
   return 'dashboard';
 }
 
-// Pas buka app, set state awal
 setHistoryState('dashboard');
 
-// Tiap ganti halaman, push state baru
 let keStepOri = keStep;
 keStep = function(n){
   keStepOri(n);
@@ -860,7 +827,6 @@ batal = function(){
   setHistoryState('dashboard');
 }
 
-// Event pas tombol back HP dipencet
 window.addEventListener('popstate', function(e){
   let halaman = cekHalamanAktif();
 
@@ -871,32 +837,6 @@ window.addEventListener('popstate', function(e){
     history.back();
   }
 });
-
-async function lihatDetailAgenda(id){
-  const { doc, getDoc } = window.firebaseFuncs;
-  let snap = await getDoc(doc(window.db, "agenda", id));
-  if(snap.exists()){
-    let d = snap.data();
-    let formatBikin = new Date(d.tanggalBikin).toLocaleDateString('id-ID');
-    let formatLaksana = d.tanggalLaksana ? new Date(d.tanggalLaksana).toLocaleDateString('id-ID') : 'Belum ditentukan';
-    
-    let isiHtml = `
-      <p><b>Status:</b> <span class="badge ${d.status}">${d.status.toUpperCase()}</span></p>
-      <p><b>Dibuat:</b> ${formatBikin}</p>
-      <p><b>Rencana Laksana:</b> ${formatLaksana}</p>
-      <hr style="margin:12px 0;border:none;border-top:1px solid #e2e8f0">
-      <p><b>Isi Agenda:</b><br>${d.isi}</p>
-      ${d.hasil ? `<p><b>Hasil/Resep Dokter:</b><br>${d.hasil}</p>` : '<p style="color:#94a3b8"><i>Belum ada hasil/resep</i></p>'}
-    `;
-    
-    document.getElementById('isiModal').innerHTML = isiHtml;
-    document.getElementById('modalDetail').style.display = 'flex';
-  }
-}
-
-function tutupModal(){
-  document.getElementById('modalDetail').style.display = 'none';
-}
 </script>
 </body>
   </html>
