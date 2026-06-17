@@ -250,8 +250,14 @@ h3{color:#0f172a;margin:10px 0}
       <label>Tanggal bikin:</label>
       <input type="date" id="agendaTanggalBikin">
       <label>Isi Agenda:</label>
-      <textarea id="agendaIsi" placeholder="Tulis rencana/agenda di sini..." style="height:120px"></textarea>
-      <label>Tanggal rencana pelaksanaan: <span style="font-size:12px;color:#64748b;font-weight:400">(opsional)</span></label>
+<textarea id="agendaIsi" placeholder="Tulis rencana/agenda di sini..." style="height:120px"></textarea>
+
+<label>Hasil / Resep:</label>
+<textarea id="agendaHasilResep"
+placeholder="Tulis hasil kontrol, resep dokter, hasil terapi, dll..."
+style="height:100px"></textarea>
+
+<label>Tanggal rencana pelaksanaan: <span style="font-size:12px;color:#64748b;font-weight:400">(opsional)</span></label>
       <input type="date" id="agendaTanggalLaksana">
       <label>Status:</label>
       <select id="agendaStatus">
@@ -629,23 +635,32 @@ async function filterRiwayat(topik, btn){
 }
 
 // ===== FUNGSI AGENDA UPDATE =====
-function bukaAgenda(){
+async function bukaAgenda(){
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById('agendaPage').classList.remove('hidden');
-  document.getElementById('formAgenda').classList.add('hidden'); // form disembunyiin dulu
+
+  document.getElementById('formAgenda').classList.add('hidden');
+
   document.getElementById('agendaTanggalBikin').value = hariIni;
   document.getElementById('agendaIsi').value = '';
+  document.getElementById('agendaHasilResep').value = '';
   document.getElementById('agendaTanggalLaksana').value = '';
   document.getElementById('agendaStatus').value = 'belum';
+
   editAgendaId = null;
 
-  // Reset filter ke "Semua" dan langsung aktif
   filterAgendaAktif = 'semua';
-  let btnSemua = document.querySelector('#agendaPage .filter-wrap .filter-btn');
-  document.querySelectorAll('#agendaPage .filter-wrap .filter-btn').forEach(b=>b.classList.remove('active'));
+
+  let btnSemua =
+    document.querySelector('#agendaPage .filter-wrap .filter-btn');
+
+  document.querySelectorAll('#agendaPage .filter-wrap .filter-btn')
+    .forEach(b=>b.classList.remove('active'));
+
   btnSemua.classList.add('active');
 
-  loadAgenda();
+  await loadAgenda();
+
   setHistoryState('agenda');
 }
 
@@ -655,9 +670,10 @@ function toggleFormAgenda(){
     document.getElementById('agendaTanggalBikin').value = hariIni;
   } else {
     editAgendaId = null;
-    document.getElementById('agendaIsi').value = '';
-    document.getElementById('agendaTanggalLaksana').value = '';
-    document.getElementById('agendaStatus').value = 'belum';
+document.getElementById('agendaIsi').value = '';
+document.getElementById('agendaHasilResep').value = '';
+document.getElementById('agendaTanggalLaksana').value = '';
+document.getElementById('agendaStatus').value = 'belum';
   }
 }
 
@@ -671,9 +687,10 @@ function batalAgenda(){
 
 async function simpanAgenda(){
   let tglBikin = document.getElementById('agendaTanggalBikin').value;
-  let isi = document.getElementById('agendaIsi').value.trim();
-  let tglLaksana = document.getElementById('agendaTanggalLaksana').value;
-  let status = document.getElementById('agendaStatus').value;
+let isi = document.getElementById('agendaIsi').value.trim();
+let hasilResep = document.getElementById('agendaHasilResep').value.trim();
+let tglLaksana = document.getElementById('agendaTanggalLaksana').value;
+let status = document.getElementById('agendaStatus').value;
 
   if(!tglBikin ||!isi){
     alert('Tanggal bikin & isi agenda wajib diisi Umi');
@@ -684,13 +701,15 @@ async function simpanAgenda(){
   let id = editAgendaId || 'agenda_'+Date.now();
 
   await setDoc(doc(window.db, "agenda", id), {
-    id: id,
-    tanggalBikin: tglBikin,
-    isi: isi,
-    tanggalLaksana: tglLaksana || '',
-    status: status,
-    waktuInput: new Date().toISOString()
-  });
+  id: id,
+  tanggalBikin: tglBikin,
+  isi: isi,
+  hasilResep: hasilResep,
+  isi: isi,
+  tanggalLaksana: tglLaksana || '',
+  status: status,
+  waktuInput: new Date().toISOString()
+});
 
   alert('Agenda tersimpan ✅');
   editAgendaId = null;
@@ -746,9 +765,20 @@ async function loadAgenda(){
         </div>
       </div>
       <div class="riwayat-block">
-        <div class="riwayat-label">Dibuat: ${formatBikin}</div>
-        <div class="riwayat-value">${d.isi}</div>
-      </div>
+  <div class="riwayat-label">Agenda</div>
+  <div class="riwayat-value">${d.isi}</div>
+</div>
+
+${d.hasilResep ? `
+<div class="riwayat-block">
+  <div class="riwayat-label">Hasil / Resep</div>
+  <div class="riwayat-value">${d.hasilResep}</div>
+</div>
+` : ''}
+
+<div class="riwayat-block">
+  <div class="riwayat-label">Dibuat: ${formatBikin}</div>
+</div>
     </div>`;
   });
 
@@ -766,14 +796,20 @@ function filterAgenda(status, btn){
 async function editAgenda(id){
   const { doc, getDoc } = window.firebaseFuncs;
   let snap = await getDoc(doc(window.db, "agenda", id));
+
   if(snap.exists()){
     let d = snap.data();
+
     editAgendaId = id;
+
     document.getElementById('agendaTanggalBikin').value = d.tanggalBikin;
     document.getElementById('agendaIsi').value = d.isi;
+    document.getElementById('agendaHasilResep').value = d.hasilResep || '';
     document.getElementById('agendaTanggalLaksana').value = d.tanggalLaksana || '';
     document.getElementById('agendaStatus').value = d.status || 'belum';
+
     document.getElementById('formAgenda').classList.remove('hidden');
+
     window.scrollTo(0,0);
   }
 }
@@ -839,4 +875,4 @@ window.addEventListener('popstate', function(e){
 });
 </script>
 </body>
-  </html>
+</html>
