@@ -722,7 +722,7 @@ async function loadAgenda(){
   let list = document.getElementById('listAgenda');
   list.innerHTML = 'Loading...';
 
-  let q = query(collection(window.db, "agenda"), orderBy("waktuInput", "desc"));
+  let q = query(collection(window.db, "agenda"), orderBy("tanggalLaksana", "desc"));
   let snap = await getDocs(q);
 
   if(snap.empty){
