@@ -580,6 +580,17 @@ function formatMakan(arr){
   return html;
 }
 
+function buatLink(text){
+  if(!text) return '';
+
+  return text
+    .replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a href="$1" target="_blank">$1</a>'
+    )
+    .replace(/\n/g,'<br>');
+}
+
 async function filterRiwayat(topik, btn){
   document.querySelectorAll('#riwayatPage .filter-wrap .filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
@@ -766,13 +777,13 @@ async function loadAgenda(){
       </div>
       <div class="riwayat-block">
   <div class="riwayat-label">Agenda</div>
-  <div class="riwayat-value">${d.isi}</div>
+  <div class="riwayat-value">${buatLink(d.isi)}</div>
 </div>
 
 ${d.hasilResep ? `
 <div class="riwayat-block">
   <div class="riwayat-label">Hasil / Resep</div>
-  <div class="riwayat-value">${d.hasilResep}</div>
+  <div class="riwayat-value">${buatLink(d.hasilResep)}</div>
 </div>
 ` : ''}
 
