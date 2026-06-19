@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAR - Catatan Anggaran</title>
+<style>
+  body{font-family:Poppins,sans-serif;background:#f0f9ff;margin:0;padding:0;color:#334155;padding-bottom:100px}
+.container{max-width:520px;margin:auto;padding:15px}
+  h1,h2{text-align:center;color:#0ea5e9;margin:10px 0;font-weight:700}
+  h3{color:#0f172a;margin:10px 0}
+.card{background:white;border-radius:16px;padding:15px;margin-bottom:15px;box-shadow:0 4px 12px rgba(14,165,233,0.08);border-top:4px solid #0ea5e9}
+.btn-wrap{display:flex;gap:10px;margin-top:10px}
+.btn{background:#0ea5e9;color:white;border:none;padding:14px;border-radius:12px;width:100%;font-size:15px;cursor:pointer;font-weight:600;flex:1}
+.btn.alt{background:#10b981}
+.btn.gray{background:#e2e8f0;color:#475569}
+.btn.danger{background:#dc2626}
+  label{display:block;margin-top:8px;font-size:14px;font-weight:500}
+  input[type="number"],input[type="text"],input[type="date"],textarea,select{width:100%;padding:12px;border-radius:8px;border:1px solid #cbd5e1;margin-top:5px;font-size:14px;font-family:inherit;box-sizing:border-box}
+  textarea{resize:vertical;min-height:100px}
+.hidden{display:none!important}
+
+.saldo-box{display:flex;justify-content:space-between;gap:10px}
+.saldo-item{flex:1;text-align:center;padding:12px;border-radius:12px;background:#f0f9ff}
+.saldo-label{font-size:13px;color:#64748b;margin-bottom:4px}
+.saldo-angka{font-size:20px;font-weight:700;color:#0ea5e9}
+.saldo-angka.merah{color:#dc2626}
+
+.transaksi-item{background:white;border-radius:12px;padding:12px;margin-bottom:10px;border-left:4px solid #0ea5e9}
+.trans-header{display:flex;justify-content:space-between;align-items:start;margin-bottom:6px}
+.trans-tgl{font-size:13px;color:#64748b}
+.trans-ket{font-weight:600;margin-top:4px;white-space:pre-wrap;word-break:break-word;line-height:1.6}
+.trans-ket a{color:#0ea5e9;text-decoration:underline;font-weight:600}
+.trans-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.trans-nominal{font-weight:700;font-size:18px;color:#dc2626}
+.trans-aksi{display:flex;gap:6px}
+.icon-btn{background:#f1f5f9;border:none;width:32px;height:32px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.icon-btn.hapus{background:#fee2e2}
+
+.popup{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:1000}
+.popup.show{display:flex;animation:fadeIn 0.3s}
+  @keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
+.popup-card{background:white;border-radius:20px;padding:20px;max-width:360px;width:90%;box-shadow:0 10px 30px rgba(0,0,0,0.2);border-top:5px solid #0ea5e9}
+.popup-title{font-size:18px;font-weight:700;color:#0f172a;margin-bottom:12px}
+.loading{text-align:center;color:#64748b;padding:20px}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🛞 CAR</h1>
+
+  <div class="card">
+    <label>Tahun:</label>
+    <select id="tahunSelect"></select>
+    <div class="btn-wrap">
+      <button class="btn" onclick="bukaPopupBudget()">+ Budget</button>
+      <button class="btn alt" onclick="bukaPopupTransaksi()">+ Transaksi</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="saldo-box">
+      <div class="saldo-item">
+        <div class="saldo-label">Budget</div>
+        <div class="saldo-angka" id="budgetAngka">Rp 0</div>
+      </div>
+      <div class="saldo-item">
+        <div class="saldo-label">Sisa Saldo</div>
+        <div class="saldo-angka" id="sisaAngka">Rp 0</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Transaksi</h3>
+  <div id="listTransaksi"><div class="loading">Loading...</div></div>
+</div>
+
+<div id="popupBudget" class="popup">
+  <div class="popup-card">
+    <div class="popup-title">Set Budget Tahun <span id="tahunBudgetLabel"></span></div>
+    <label>Nominal Budget:</label>
+    <input type="text" id="inputBudget" placeholder="Rp 5.000.000">
+    <div class="btn-wrap">
+      <button class="btn" onclick="simpanBudget()">Simpan</button>
+      <button class="btn gray" onclick="tutupPopupBudget()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<div id="popupTransaksi" class="popup">
+  <div class="popup-card">
+    <div class="popup-title" id="popupTransaksiTitle">Tambah Transaksi</div>
+    <label>Tanggal:</label>
+    <input type="date" id="inputTanggal">
+    <label>Keterangan:</label>
+    <textarea id="inputKeterangan"></textarea>
+    <label>Nominal:</label>
+    <input type="text" id="inputNominal">
+    <div class="btn-wrap">
+      <button class="btn" onclick="simpanTransaksi()">Simpan</button>
+      <button class="btn gray" onclick="tutupPopupTransaksi()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+// GANTI 2 BARIS INI DOANG
+const SUPABASE_URL = 'https://talrfinajiwxstnbtyzt.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbHJmaW5haml3eHN0bmJ0eXp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NTE5MTIsImV4cCI6MjA5NzQyNzkxMn0.edLmptwaMx0-SBNO1EY0A3dZm7de3I-GhAjilmFvZ7o'
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+let tahunAktif = new Date().getFullYear()
+let dataCAR = {budget: 0, transaksi: []}
+let editTransId = null
+
+function formatRp(angka){
+  if(isNaN(angka)) return 'Rp 0'
+  return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+}
+function parseRp(str){
+  return parseInt(str.replace(/[^0-9]/g,'')) || 0
+}
+function autoRupiah(input){
+  input.addEventListener('input', function(e){
+    let val = parseRp(this.value)
+    this.value = val? formatRp(val) : ''
+  })
+}
+autoRupiah(document.getElementById('inputBudget'))
+autoRupiah(document.getElementById('inputNominal'))
+
+function linkify(text){
+  if(!text) return ''
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  return text.replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`)
+}
+
+function initTahunSelect(){
+  let select = document.getElementById('tahunSelect')
+  for(let y=2020; y<=2035; y++){
+    let opt = document.createElement('option')
+    opt.value = y
+    opt.textContent = y
+    if(y == tahunAktif) opt.selected = true
+    select.appendChild(opt)
+  }
+  select.addEventListener('change', function(){
+    tahunAktif = parseInt(this.value)
+    loadData()
+  })
+}
+
+async function loadData(){
+  document.getElementById('listTransaksi').innerHTML = '<div class="loading">Loading...</div>'
+
+  // Ambil budget dari Supabase
+  let {data: budgetData, error: e1} = await supabase
+  .from('budget')
+  .select('budget')
+  .eq('tahun', tahunAktif)
+  .single()
+
+  dataCAR.budget = budgetData?.budget || 0
+
+  // Ambil transaksi dari Supabase
+  let {data: transData, error: e2} = await supabase
+  .from('transactions')
+  .select('*')
+  .eq('tahun', tahunAktif)
+  .order('tanggal', {ascending: false})
+
+  dataCAR.transaksi = transData || []
+
+  if(e1 || e2) console.error(e1 || e2)
+
+  renderSaldo()
+  renderTransaksi()
+}
+
+function renderSaldo(){
+  let totalKeluar = dataCAR.transaksi.reduce((sum,t)=>sum+t.nominal, 0)
+  let sisa = dataCAR.budget - totalKeluar
+
+  document.getElementById('budgetAngka').textContent = formatRp(dataCAR.budget)
+  let sisaEl = document.getElementById('sisaAngka')
+  sisaEl.textContent = formatRp(sisa)
+  sisaEl.classList.toggle('merah', sisa < 0)
+}
+
+function renderTransaksi(){
+  let list = document.getElementById('listTransaksi')
+  if(dataCAR.transaksi.length == 0){
+    list.innerHTML = '<div class="card">Belum ada transaksi</div>'
+    return
+  }
+
+  let html = ''
+  dataCAR.transaksi.forEach((t)=>{
+    let d = new Date(t.tanggal)
+    let formatTgl = d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear()
+    html += `<div class="transaksi-item">
+      <div class="trans-header">
+        <div>
+          <div class="trans-tgl">${formatTgl}</div>
+          <div class="trans-ket">${linkify(t.keterangan)}</div>
+        </div>
+      </div>
+      <div class="trans-footer">
+        <div class="trans-nominal">- ${formatRp(t.nominal)}</div>
+        <div class="trans-aksi">
+          <button class="icon-btn" onclick="editTransaksi('${t.id}')">✏️</button>
+          <button class="icon-btn hapus" onclick="hapusTransaksi('${t.id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`
+  })
+  list.innerHTML = html
+}
+
+function bukaPopupBudget(){
+  document.getElementById('tahunBudgetLabel').textContent = tahunAktif
+  document.getElementById('inputBudget').value = dataCAR.budget? formatRp(dataCAR.budget) : ''
+  document.getElementById('popupBudget').classList.add('show')
+}
+function tutupPopupBudget(){
+  document.getElementById('popupBudget').classList.remove('show')
+}
+
+async function simpanBudget(){
+  let nominal = parseRp(document.getElementById('inputBudget').value)
+  if(nominal == 0) return alert('Isi nominal budget dulu')
+
+  await supabase.from('budget').upsert({tahun: tahunAktif, budget: nominal})
+  dataCAR.budget = nominal
+  renderSaldo()
+  tutupPopupBudget()
+}
+
+function bukaPopupTransaksi(id=null){
+  editTransId = id
+  if(id){
+    let t = dataCAR.transaksi.find(x=>x.id==id)
+    document.getElementById('popupTransaksiTitle').textContent = 'Edit Transaksi'
+    document.getElementById('inputTanggal').value = t.tanggal
+    document.getElementById('inputKeterangan').value = t.keterangan
+    document.getElementById('inputNominal').value = formatRp(t.nominal)
+  } else {
+    document.getElementById('popupTransaksiTitle').textContent = 'Tambah Transaksi'
+    document.getElementById('inputTanggal').value = new Date().toISOString().split('T')[0]
+    document.getElementById('inputKeterangan').value = ''
+    document.getElementById('inputNominal').value = ''
+  }
+  document.getElementById('popupTransaksi').classList.add('show')
+}
+function tutupPopupTransaksi(){
+  editTransId = null
+  document.getElementById('popupTransaksi').classList.remove('show')
+}
+
+async function simpanTransaksi(){
+  let tgl = document.getElementById('inputTanggal').value
+  let ket = document.getElementById('inputKeterangan').value.trim()
+  let nominal = parseRp(document.getElementById('inputNominal').value)
+
+  if(!tgl ||!ket || nominal == 0) return alert('Semua field wajib diisi')
+
+  if(editTransId){
+    await supabase.from('transactions').update({tanggal: tgl, keterangan: ket, nominal: nominal}).eq('id', editTransId)
+  } else {
+    await supabase.from('transactions').insert({tahun: tahunAktif, tanggal: tgl, keterangan: ket, nominal: nominal})
+  }
+
+  loadData()
+  tutupPopupTransaksi()
+}
+
+function editTransaksi(id){
+  bukaPopupTransaksi(id)
+}
+
+async function hapusTransaksi(id){
+  if(confirm('Hapus transaksi ini?')){
+    await supabase.from('transactions').delete().eq('id', id)
+    loadData()
+  }
+}
+
+initTahunSelect()
+loadData()
+
+// Biar fungsi bisa dipanggil dari onclick HTML
+window.bukaPopupBudget = bukaPopupBudget
+window.tutupPopupBudget = tutupPopupBudget
+window.simpanBudget = simpanBudget
+window.bukaPopupTransaksi = bukaPopupTransaksi
+window.tutupPopupTransaksi = tutupPopupTransaksi
+window.simpanTransaksi = simpanTransaksi
+window.editTransaksi = editTransaksi
+window.hapusTransaksi = hapusTransaksi
+</script>
+</body>
+</html>
