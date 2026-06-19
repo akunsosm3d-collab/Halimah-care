@@ -108,6 +108,9 @@ h3{color:#0f172a;margin:10px 0}
     <div class="btn-wrap" style="margin-top:8px">
       <button class="btn" style="background:#f59e0b" onclick="bukaAgenda()">📅 Agenda</button>
     </div>
+    <div class="btn-wrap" style="margin-top:8px">
+  <button class="btn" style="background:#0ea5e9" onclick="bukaCAR()">🛞 CAR</button>
+    </div>
 
     <div id="notifArea"></div>
   </div>
@@ -884,6 +887,9 @@ window.addEventListener('popstate', function(e){
     history.back();
   }
 });
+  function bukaCAR(){
+  window.location.href = 'Car.html'
+  }
 </script>
 </body>
 </html>
