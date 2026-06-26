@@ -72,15 +72,22 @@ h3{color:#0f172a;margin:10px 0}
 .badge.batal{background:#fee2e2;color:#991b1b}
 </style>
 
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "44137ac3-f9fe-44dd-9295-861d67a78e3e",
-    });
-  });
-</script>
+      <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "44137ac3-f9fe-44dd-9295-861d67a78e3e",
+          // Biar gak nongol otomatis, kita panggil manual pake tombol
+          autoRegister: false, 
+        });
+
+        // Pas tombol diklik, baru minta izin
+        document.getElementById('btn-subscribe').addEventListener('click', function() {
+          OneSignal.Slidedown.promptPush();
+        });
+      });
+    </script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
@@ -120,6 +127,9 @@ h3{color:#0f172a;margin:10px 0}
     </div>
     <div class="btn-wrap" style="margin-top:8px">
   <button class="btn" style="background:#0ea5e9" onclick="bukaCAR()">🛞 CAR</button>
+    </div>
+    <div class="btn-wrap" style="margin-top:8px">
+      <button id="btn-subscribe" class="btn" style="background:pink">Aktifkan Notifikasi 🔔</button>
     </div>
 
     <div id="notifArea"></div>
